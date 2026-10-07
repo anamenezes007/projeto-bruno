@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cápsula do Tempo Segura</title>
+  <meta name="description" content="Cápsula do tempo com login, senha, mídia e música para guardar mensagens com carinho." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f7f1e8;
+      --bg2:#efe3d2;
+      --paper:rgba(255,255,255,.68);
+      --paper-2:rgba(255,255,255,.84);
+      --ink:#2f2a26;
+      --muted:#6f665f;
+      --line:rgba(73,58,46,.12);
+      --accent:#7e9c7a;
+      --accent-2:#bb886d;
+      --danger:#9e5f4d;
+      --shadow:0 18px 40px rgba(61,48,35,.12);
+      --radius-xl:28px;
+      --radius-lg:20px;
+      --radius-md:14px;
+      --radius-sm:10px;
+      --focus:0 0 0 3px rgba(126,156,122,.25);
+      --max:1260px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:"Manrope", sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 15% 15%, rgba(126,156,122,.18), transparent 22%),
+        radial-gradient(circle at 85% 12%, rgba(187,136,109,.16), transparent 20%),
+        radial-gradient(circle at 80% 85%, rgba(201,176,124,.14), transparent 24%),
+        linear-gradient(180deg,var(--bg),var(--bg2));
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(rgba(255,255,255,.12), rgba(255,255,255,.05)),
+        repeating-linear-gradient(90deg, transparent 0 30px, rgba(80,60,44,.018) 30px 31px);
+      opacity:.8;
+      mix-blend-mode:soft-light;
+    }
+
+    a{text-decoration:none;color:inherit}
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    img,video{max-width:100%;display:block}
+
+    .container{
+      width:min(calc(100% - 2rem), var(--max));
+      margin:auto;
+    }
+
+    .hidden{display:none !important}
+
+    .reveal{
+      opacity:0;
+      transform:translateY(20px);
+      transition:opacity .8s ease, transform .8s ease;
+    }
+    .reveal.visible{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .stagger > *{
+      opacity:0;
+      transform:translateY(18px);
+      animation:rise .8s ease forwards;
+    }
+    .stagger > *:nth-child(1){animation-delay:.08s}
+    .stagger > *:nth-child(2){animation-delay:.16s}
+    .stagger > *:nth-child(3){animation-delay:.24s}
+    .stagger > *:nth-child(4){animation-delay:.32s}
+    .stagger > *:nth-child(5){animation-delay:.40s}
+
+    @keyframes rise{
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    .site-header{
+      position:sticky;
+      top:0;
+      z-index:40;
+      backdrop-filter:blur(14px);
+      background:rgba(247,241,232,.72);
+      border-bottom:1px solid rgba(71,57,45,.08);
+    }
+
+    .nav{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:1rem;
+      padding:1rem 0;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:.85rem;
+    }
+
+    .brand-mark{
+      width:50px;height:50px;border-radius:16px;
+      display:grid;place-items:center;
+      border:1px solid rgba(74,58,45,.08);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), transparent 25%),
+        linear-gradient(135deg,#d6c7af,#95ad90);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 8px 24px rgba(61,48,35,.12);
+    }
+
+    .brand-mark svg{width:26px;height:26px}
+    .brand strong{display:block;font-size:1rem}
+    .brand span{display:block;font-size:.8rem;color:var(--muted)}
+
+    .nav-actions{
+      display:flex;
+      gap:.6rem;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      border:none;
+      border-radius:999px;
+      padding:.9rem 1.15rem;
+      font-weight:800;
+      letter-spacing:.01em;
+      transition:transform .18s ease, box-shadow .25s ease, background .25s ease;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn:active{transform:scale(.98)}
+    .btn:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible{
+      outline:none;
+      box-shadow:var(--focus);
+    }
+
+    .btn-primary{
+      color:#fff;
+      background:linear-gradient(135deg,#7e9c7a,#6e8b6b);
+      box-shadow:0 10px 24px rgba(91,119,88,.26);
+    }
+
+    .btn-soft{
+      background:rgba(255,255,255,.62);
+      border:1px solid rgba(74,58,45,.1);
+      color:var(--ink);
+    }
+
+    .btn-danger{
+      background:rgba(187,136,109,.14);
+      border:1px solid rgba(187,136,109,.18);
+      color:var(--danger);
+    }
+
+    .main{
+      padding:1.25rem 0 4rem;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1rem;
+    }
+
+    .panel{
+      background:var(--paper);
+      border:1px solid rgba(74,58,45,.1);
+      border-radius:var(--radius-xl);
+      backdrop-filter:blur(14px);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .hero-copy{
+      padding:clamp(1.3rem, 4vw, 3rem);
+      min-height:460px;
+      display:grid;
+      align-content:space-between;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.08)),
+        radial-gradient(circle at 85% 16%, rgba(126,156,122,.14), transparent 24%);
+    }
+
+    .eyebrow{
+      width:max-content;
+      display:inline-flex;
+      align-items:center;
+      gap:.55rem;
+      padding:.55rem .8rem;
+      border-radius:999px;
+      background:rgba(255,255,255,.58);
+      border:1px solid rgba(74,58,45,.08);
+      color:var(--muted);
+      font-size:.86rem;
+      font-weight:700;
+    }
+
+    .eyebrow-dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--accent);
+      box-shadow:0 0 0 6px rgba(126,156,122,.14);
+    }
+
+    h1,h2,h3,h4{
+      margin:0;
+      font-family:"Cormorant Garamond", serif;
+      line-height:.95;
+      letter-spacing:-.02em;
+    }
+
+    h1{
+      font-size:clamp(3rem, 7vw, 6.6rem);
+      max-width:10ch;
+      margin-top:1rem;
+    }
+
+    .hero-copy p{
+      max-width:58ch;
+      font-size:clamp(1rem,1.25vw,1.12rem);
+      line-height:1.75;
+      color:#514943;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.8rem;
+      margin-top:1.3rem;
+    }
+
+    .hero-visual{
+      padding:1rem;
+      min-height:460px;
+      display:grid;
+      gap:1rem;
+      background:linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.1));
+    }
+
+    .memory-window{
+      position:relative;
+      min-height:240px;
+      border-radius:24px;
+      padding:1rem;
+      background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(247,241,232,.68));
+      border:1px solid rgba(74,58,45,.08);
+      overflow:hidden;
+    }
+
+    .memory-window::before,
+    .memory-window::after{
+      content:"";
+      position:absolute;
+      border-radius:50%;
+    }
+
+    .memory-window::before{
+      width:180px;height:180px;
+      background:radial-gradient(circle, rgba(126,156,122,.25), transparent 62%);
+      top:-35px;right:-10px;
+    }
+
+    .memory-window::after{
+      width:150px;height:150px;
+      background:radial-gradient(circle, rgba(187,136,109,.2), transparent 64%);
+      bottom:-25px;left:-15px;
+    }
+
+    .floating-lines{
+      position:relative;
+      z-index:2;
+      display:grid;
+      gap:.9rem;
+      margin-top:1rem;
+    }
+
+    .floating-line{
+      height:12px;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(110,139,107,.42), rgba(255,255,255,0));
+      animation:drift 6s ease-in-out infinite;
+    }
+
+    .floating-line:nth-child(1){width:40%}
+    .floating-line:nth-child(2){width:62%;animation-delay:-1s}
+    .floating-line:nth-child(3){width:36%;animation-delay:-2s}
+    .floating-line:nth-child(4){width:68%;animation-delay:-3s}
+
+    @keyframes drift{
+      0%,100%{transform:translateX(0)}
+      50%{transform:translateX(18px)}
+    }
+
+    .mini-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1rem;
+    }
+
+    .mini{
+      padding:1rem;
+      border-radius:20px;
+      border:1px solid rgba(74,58,45,.08);
+      background:rgba(255,255,255,.58);
+    }
+
+    .mini h3{
+      font-size:1.6rem;
+      margin-bottom:.3rem;
+    }
+
+    .mini p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:.95rem;
+    }
+
+    .section{
+      padding:1rem 0 0;
+    }
+
+    .section-header{
+      display:grid;
+      gap:.7rem;
+      margin-bottom:1.2rem;
+    }
+
+    .section-header h2{
+      font-size:clamp(2.5rem,4vw,4.8rem);
+      max-width:10ch;
+    }
+
+    .section-header p{
+      margin:0;
+      max-width:62ch;
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    .workspace{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1rem;
+    }
+
+    .composer,
+    .capsules{
+      padding:clamp(1rem,3vw,1.5rem);
+    }
+
+    .composer-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:1rem;
+      margin-bottom:1rem;
+    }
+
+    .composer-head h3,
+    .capsules h3,
+    .login-box h2{
+      font-size:clamp(2rem,3vw,2.8rem);
+    }
+
+    .muted{
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .form-grid{
+      display:grid;
+      gap:1rem;
+    }
+
+    .split{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1rem;
+    }
+
+    .field-group{
+      display:grid;
+      gap:.45rem;
+    }
+
+    label{
+      font-size:.94rem;
+      font-weight:800;
+      color:#4d453e;
+    }
+
+    input,textarea,select{
+      width:100%;
+      border:1px solid rgba(74,58,45,.12);
+      border-radius:18px;
+      background:rgba(255,255,255,.7);
+      padding:1rem;
+      color:var(--ink);
+      transition:border-color .25s ease, background .25s ease;
+    }
+
+    textarea{
+      min-height:170px;
+      resize:vertical;
+      line-height:1.72;
+    }
+
+    input:hover,textarea:hover,select:hover{
+      border-color:rgba(126,156,122,.34);
+      background:rgba(255,255,255,.82);
+    }
+
+    .helper-bar,
+    .composer-actions,
+    .capsules-toolbar,
+    .capsule-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.7rem;
+    }
+
+    .chip,
+    .btn-inline{
+      border:none;
+      border-radius:999px;
+      padding:.72rem .95rem;
+      background:rgba(255,255,255,.64);
+      border:1px solid rgba(74,58,45,.1);
+      font-weight:800;
+      color:#534b45;
+      transition:transform .18s ease, background .25s ease;
+    }
+
+    .chip:hover,
+    .btn-inline:hover{
+      transform:translateY(-2px);
+      background:rgba(255,255,255,.9);
+    }
+
+    .status{
+      min-height:1.4rem;
+      color:#4f6f4a;
+      font-weight:700;
+      font-size:.95rem;
+    }
+
+    .search-wrap{
+      position:relative;
+      flex:1 1 280px;
+    }
+
+    .search-wrap input{padding-left:3rem}
+    .search-wrap svg{
+      width:18px;height:18px;
+      position:absolute;
+      left:1rem;
+      top:50%;
+      transform:translateY(-50%);
+      opacity:.55;
+    }
+
+    .capsules-list{
+      display:grid;
+      gap:.9rem;
+      margin-top:1rem;
+    }
+
+    .capsule-item{
+      padding:1rem;
+      border-radius:22px;
+      background:rgba(255,255,255,.58);
+      border:1px solid rgba(74,58,45,.09);
+      display:grid;
+      gap:1rem;
+      transition:transform .18s ease, background .25s ease, box-shadow .25s ease;
+    }
+
+    .capsule-item:hover{
+      transform:translateY(-2px);
+      background:rgba(255,255,255,.82);
+      box-shadow:0 12px 24px rgba(61,48,35,.08);
+    }
+
+    .capsule-top{
+      display:flex;
+      justify-content:space-between;
+      gap:1rem;
+      align-items:flex-start;
+    }
+
+    .capsule-title{
+      font-size:1.3rem;
+      font-weight:800;
+      letter-spacing:-.02em;
+    }
+
+    .capsule-date{
+      color:var(--muted);
+      font-size:.9rem;
+      white-space:nowrap;
+    }
+
+    .capsule-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.55rem;
+      margin:.55rem 0 .35rem;
+    }
+
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      padding:.45rem .75rem;
+      border-radius:999px;
+      font-size:.84rem;
+      font-weight:800;
+      background:rgba(126,156,122,.12);
+      color:#4d6749;
+      border:1px solid rgba(126,156,122,.14);
+    }
+
+    .capsule-content{
+      line-height:1.72;
+      color:#504843;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .media-preview{
+      display:grid;
+      gap:.8rem;
+      margin-top:.9rem;
+    }
+
+    .media-box{
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(74,58,45,.1);
+      background:rgba(255,255,255,.7);
+      max-height:360px;
+    }
+
+    .media-box img,
+    .media-box video{
+      width:100%;
+      height:auto;
+      object-fit:cover;
+    }
+
+    .music-link{
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      width:max-content;
+      padding:.7rem .95rem;
+      border-radius:999px;
+      background:rgba(187,136,109,.12);
+      border:1px solid rgba(187,136,109,.18);
+      color:#7f5646;
+      font-weight:800;
+    }
+
+    .empty-state{
+      padding:1.2rem;
+      border-radius:20px;
+      border:1px dashed rgba(74,58,45,.18);
+      background:rgba(255,255,255,.34);
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .support-strip{
+      margin-top:1rem;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1rem;
+    }
+
+    .support-note{
+      padding:1.2rem;
+      border-radius:24px;
+      background:linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.48));
+      border:1px solid rgba(74,58,45,.08);
+      box-shadow:var(--shadow);
+    }
+
+    .support-note h3{
+      font-size:2rem;
+      margin-bottom:.35rem;
+    }
+
+    .support-note p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    footer{
+      padding:1.6rem 0 3rem;
+      color:var(--muted);
+    }
+
+    .footer-box{
+      padding:1.2rem;
+      border-top:1px solid rgba(74,58,45,.1);
+      display:flex;
+      flex-direction:column;
+      gap:.6rem;
+    }
+
+    .login-screen{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:1.2rem;
+    }
+
+    .login-shell{
+      width:min(100%, 980px);
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1rem;
+    }
+
+    .login-art,
+    .login-box{
+      padding:clamp(1.2rem, 4vw, 2.2rem);
+    }
+
+    .login-art{
+      min-height:280px;
+      display:grid;
+      align-content:space-between;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.08)),
+        radial-gradient(circle at 80% 15%, rgba(126,156,122,.16), transparent 24%);
+    }
+
+    .login-art p{
+      max-width:48ch;
+      color:#524942;
+      line-height:1.75;
+      margin-top:1rem;
+    }
+
+    .login-box .form-grid{
+      margin-top:1rem;
+    }
+
+    .login-status{
+      min-height:1.4rem;
+      font-weight:700;
+      color:var(--danger);
+    }
+
+    .demo-credentials{
+      margin-top:1rem;
+      padding:1rem;
+      border-radius:18px;
+      background:rgba(255,255,255,.5);
+      border:1px solid rgba(74,58,45,.08);
+      color:#5a514b;
+      line-height:1.7;
+      font-size:.95rem;
+    }
+
+    .sr-only{
+      position:absolute;
+      width:1px;height:1px;
+      padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);
+      white-space:nowrap;border:0;
+    }
+
+    @media (min-width: 760px){
+      .hero{grid-template-columns:1.05fr .95fr}
+      .mini-grid{grid-template-columns:1fr 1fr}
+      .split{grid-template-columns:1fr 1fr}
+      .support-strip{grid-template-columns:1fr 1fr}
+      .login-shell{grid-template-columns:1fr 1fr}
+    }
+
+    @media (min-width: 1024px){
+      .workspace{grid-template-columns:.95fr 1.05fr}
+      .capsule-item{grid-template-columns:1fr auto}
+      .capsule-actions{align-self:start;justify-content:flex-end}
+    }
+  </style>
+</head>
+<body>
+  <section id="loginScreen" class="login-screen">
+    <div class="login-shell">
+      <article class="panel login-art stagger">
+        <div>
+          <div class="eyebrow">
+            <span class="eyebrow-dot"></span>
+            Espaço privado e delicado
+          </div>
+          <h1 style="max-width:8ch;">Entre na sua cápsula.</h1>
+        </div>
+        <div>
+          <p>
+            Este espaço foi pensado para guardar mensagens, fotos, vídeos e músicas que façam sentido para você.
+            O acesso é protegido por login e senha para que apenas a pessoa certa possa entrar.
+          </p>
+          <div class="demo-credentials">
+            <strong>Login padrão para testar:</strong><br>
+            usuário: <strong>meuacesso</strong><br>
+            senha: <strong>123456</strong><br><br>
+            <small>Depois de entrar, você pode trocar o login e a senha nas configurações.</small>
+          </div>
+        </div>
+      </article>
+
+      <section class="panel login-box">
+        <h2>Login</h2>
+        <p class="muted">Digite seu usuário e sua senha para acessar suas cápsulas.</p>
+
+        <form id="loginForm" class="form-grid">
+          <div class="field-group">
+            <label for="loginUser">Usuário</label>
+            <input id="loginUser" type="text" placeholder="Seu usuário" required />
+          </div>
+
+          <div class="field-group">
+            <label for="loginPass">Senha</label>
+            <input id="loginPass" type="password" placeholder="Sua senha" required />
+          </div>
+
+          <div style="display:flex; gap:.8rem; flex-wrap:wrap;">
+            <button class="btn btn-primary" type="submit">Entrar</button>
+          </div>
+
+          <div class="login-status" id="loginStatus" aria-live="polite"></div>
+        </form>
+      </section>
+    </div>
+  </section>
+
+  <div id="app" class="hidden">
+    <header class="site-header">
+      <div class="container nav">
+        <a href="#inicio" class="brand" aria-label="Página inicial">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 21s-6.8-4.35-6.8-10.1A4.07 4.07 0 0 1 9.3 6.8c1.2 0 2.17.52 2.7 1.37.53-.85 1.5-1.37 2.7-1.37a4.07 4.07 0 0 1 4.1 4.1C18.8 16.65 12 21 12 21Z" stroke="#fff" stroke-width="1.5" fill="rgba(255,255,255,.2)"/>
+            </svg>
+          </div>
+          <div>
+            <strong>Cápsula do Tempo</strong>
+            <span id="welcomeUser" style="font-size:.82rem;color:var(--muted);display:block;">área pessoal</span>
+          </div>
+        </a>
+
+        <div class="nav-actions">
+          <button class="btn btn-soft" id="exportBtn" type="button">Exportar</button>
+          <button class="btn btn-soft" id="openSettingsBtn" type="button">Configurações</button>
+          <button class="btn btn-danger" id="logoutBtn" type="button">Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main" id="inicio">
+      <section class="container hero">
+        <article class="panel hero-copy stagger">
+          <div>
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              Guardar esperança também é cuidado
+            </div>
+            <h1>Seu futuro merece receber afeto.</h1>
+          </div>
+          <div>
+            <p>
+              Crie cápsulas privadas com mensagens para você, datas especiais, fotos, vídeos e o link de uma música
+              que represente esse momento. Depois, volte, releia e edite sempre que quiser.
+            </p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" type="button" onclick="document.getElementById('capsuleTitle').focus()">Criar cápsula</button>
+              <button class="btn btn-soft" type="button" onclick="document.getElementById('minhas-capsulas').scrollIntoView({behavior:'smooth'})">Abrir minhas cápsulas</button>
+            </div>
+            <p class="muted" style="margin-top:1rem;">
+              Este site não substitui ajuda profissional. Se você estiver em risco imediato, procure ajuda urgente ou uma pessoa de confiança agora.
+            </p>
+          </div>
+        </article>
+
+        <aside class="panel hero-visual reveal">
+          <div class="memory-window">
+            <div class="floating-lines" aria-hidden="true">
+              <div class="floating-line"></div>
+              <div class="floating-line"></div>
+              <div class="floating-line"></div>
+              <div class="floating-line"></div>
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini">
+              <h3>Foto</h3>
+              <p>Guarde uma imagem que represente um motivo para continuar.</p>
+            </div>
+            <div class="mini">
+              <h3>Música</h3>
+              <p>Adicione o link de uma canção que te abrace quando as palavras falharem.</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-header reveal">
+            <h2>Crie, acesse e edite com privacidade.</h2>
+            <p>
+              Todas as cápsulas ficam salvas localmente neste navegador. O login bloqueia o acesso visual, e cada cápsula pode conter mensagem, mídia e link musical.
+            </p>
+          </div>
+
+          <div class="workspace">
+            <section class="panel composer reveal">
+              <div class="composer-head">
+                <div>
+                  <h3>Nova cápsula</h3>
+                  <p class="muted">Escreva no seu tempo. Você pode editar depois.</p>
+                </div>
+              </div>
+
+              <form id="capsuleForm" class="form-grid">
+                <input type="hidden" id="capsuleId">
+
+                <div class="field-group">
+                  <label for="capsuleTitle">Título</label>
+                  <input id="capsuleTitle" type="text" maxlength="80" placeholder="Ex.: Leia isto quando estiver cansado(a)" required>
+                </div>
+
+                <div class="split">
+                  <div class="field-group">
+                    <label for="capsuleDate">Data para revisitar</label>
+                    <input id="capsuleDate" type="date" required>
+                  </div>
+
+                  <div class="field-group">
+                    <label for="capsuleMood">Emoção</label>
+                    <select id="capsuleMood" required>
+                      <option value="">Selecione</option>
+                      <option value="Esperança">Esperança</option>
+                      <option value="Cansaço">Cansaço</option>
+                      <option value="Medo">Medo</option>
+                      <option value="Coragem">Coragem</option>
+                      <option value="Calma">Calma</option>
+                      <option value="Saudade">Saudade</option>
+                      <option value="Gratidão">Gratidão</option>
+                      <option value="Confusão">Confusão</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="capsuleMessage">Mensagem</label>
+                  <textarea id="capsuleMessage" placeholder="Escreva algo gentil para o seu eu do futuro..." required></textarea>
+                </div>
+
+                <div class="field-group">
+                  <label for="capsuleCare">Lembrete de cuidado</label>
+                  <input id="capsuleCare" type="text" maxlength="120" placeholder="Ex.: beber água, pedir ajuda, abrir a janela">
+                </div>
+
+                <div class="field-group">
+                  <label for="capsuleMusic">Link de uma música</label>
+                  <input id="capsuleMusic" type="url" placeholder="https://...">
+                </div>
+
+                <div class="split">
+                  <div class="field-group">
+                    <label for="capsuleMedia">Foto ou vídeo</label>
+                    <input id="capsuleMedia" type="file" accept="image/*,video/*">
+                  </div>
+
+                  <div class="field-group">
+                    <label for="capsuleMediaType">Tipo de mídia</label>
+                    <input id="capsuleMediaType" type="text" placeholder="Será preenchido automaticamente" readonly>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <span class="muted">Começos gentis:</span>
+                  <div class="helper-bar">
+                    <button class="chip" type="button" data-prompt="Se você estiver lendo isso num dia difícil, lembre-se:">Se estiver num dia difícil</button>
+                    <button class="chip" type="button" data-prompt="Você já sobreviveu a momentos que pareciam impossíveis, então:">Você já conseguiu antes</button>
+                    <button class="chip" type="button" data-prompt="Uma coisa importante que eu quero te lembrar hoje é:">Quero te lembrar</button>
+                    <button class="chip" type="button" data-prompt="Se tudo estiver pesado, tente começar por:">Comece por</button>
+                  </div>
+                </div>
+
+                <div class="composer-actions">
+                  <button class="btn btn-primary" type="submit" id="saveBtn">Salvar cápsula</button>
+                  <button class="btn btn-soft" type="button" id="clearBtn">Limpar</button>
+                </div>
+
+                <div class="status" id="statusMessage" aria-live="polite"></div>
+              </form>
+            </section>
+
+            <section class="panel capsules reveal" id="minhas-capsulas">
+              <h3>Minhas cápsulas</h3>
+              <p class="muted">Pesquise, edite, duplique ou exclua.</p>
+
+              <div class="capsules-toolbar">
+                <div class="search-wrap">
+                  <label for="searchInput" class="sr-only">Pesquisar</label>
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                  <input id="searchInput" type="search" placeholder="Pesquisar por título, emoção ou conteúdo">
+                </div>
+                <button class="btn btn-soft" id="importBtn" type="button">Importar</button>
+                <input id="importFile" type="file" accept=".json,application/json" hidden>
+              </div>
+
+              <div class="capsules-list" id="capsulesList"></div>
+            </section>
+          </div>
+
+          <div class="support-strip reveal">
+            <aside class="support-note">
+              <h3>Você pode ir devagar.</h3>
+              <p>Nem todo dia pede força enorme. Às vezes, só pede um próximo passo pequeno e possível.</p>
+            </aside>
+            <aside class="support-note">
+              <h3>Procure ajuda se estiver em crise.</h3>
+              <p>Se houver risco imediato, procure emergência, atendimento de saúde mental ou alguém de confiança perto de você.</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-box">
+        <strong>Cápsula do Tempo</strong>
+        <span>Armazenamento local no navegador com bloqueio simples por login.</span>
+      </div>
+    </footer>
+  </div>
+
+  <dialog id="settingsDialog" style="border:none; padding:0; background:transparent; width:min(92vw,560px);">
+    <div class="panel" style="padding:1.4rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem;">
+        <div>
+          <h3 style="font-size:2.2rem;">Configurações</h3>
+          <p class="muted" style="margin:.35rem 0 0;">Troque seu usuário e senha.</p>
+        </div>
+        <button class="btn btn-soft" id="closeSettingsBtn" type="button">Fechar</button>
+      </div>
+
+      <form id="settingsForm" class="form-grid">
+        <div class="field-group">
+          <label for="newUser">Novo usuário</label>
+          <input id="newUser" type="text" required>
+        </div>
+
+        <div class="field-group">
+          <label for="newPass">Nova senha</label>
+          <input id="newPass" type="password" required>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Salvar acesso</button>
+        <div class="status" id="settingsStatus" aria-live="polite"></div>
+      </form>
+    </div>
+  </dialog>
+
+  <script>
+    const AUTH_KEY = 'capsula_auth_v1';
+    const SESSION_KEY = 'capsula_session_v1';
+    const STORAGE_KEY = 'capsulas_do_tempo_privadas_v1';
+
+    const defaultAuth = {
+      username: 'meuacesso',
+      password: '123456'
+    };
+
+    if (!localStorage.getItem(AUTH_KEY)) {
+      localStorage.setItem(AUTH_KEY, JSON.stringify(defaultAuth));
+    }
+
+    const loginScreen = document.getElementById('loginScreen');
+    const app = document.getElementById('app');
+    const loginForm = document.getElementById('loginForm');
+    const loginUser = document.getElementById('loginUser');
+    const loginPass = document.getElementById('loginPass');
+    const loginStatus = document.getElementById('loginStatus');
+    const welcomeUser = document.getElementById('welcomeUser');
+
+    const capsuleForm = document.getElementById('capsuleForm');
+    const capsuleId = document.getElementById('capsuleId');
+    const capsuleTitle = document.getElementById('capsuleTitle');
+    const capsuleDate = document.getElementById('capsuleDate');
+    const capsuleMood = document.getElementById('capsuleMood');
+    const capsuleMessage = document.getElementById('capsuleMessage');
+    const capsuleCare = document.getElementById('capsuleCare');
+    const capsuleMusic = document.getElementById('capsuleMusic');
+    const capsuleMedia = document.getElementById('capsuleMedia');
+    const capsuleMediaType = document.getElementById('capsuleMediaType');
+    const statusMessage = document.getElementById('statusMessage');
+    const capsulesList = document.getElementById('capsulesList');
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const settingsDialog = document.getElementById('settingsDialog');
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const settingsForm = document.getElementById('settingsForm');
+    const newUser = document.getElementById('newUser');
+    const newPass = document.getElementById('newPass');
+    const settingsStatus = document.getElementById('settingsStatus');
+
+    let editingMediaData = '';
+
+    function getAuth() {
+      try {
+        return JSON.parse(localStorage.getItem(AUTH_KEY)) || defaultAuth;
+      } catch {
+        return defaultAuth;
+      }
+    }
+
+    function setSession(user) {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ loggedIn: true, user }));
+    }
+
+    function getSession() {
+      try {
+        return JSON.parse(sessionStorage.getItem(SESSION_KEY)) || { loggedIn: false };
+      } catch {
+        return { loggedIn: false };
+      }
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+
+    function showApp(user) {
+      loginScreen.classList.add('hidden');
+      app.classList.remove('hidden');
+      welcomeUser.textContent = `olá, ${user}`;
+      renderCapsules();
+      initReveal();
+    }
+
+    function showLogin() {
+      app.classList.add('hidden');
+      loginScreen.classList.remove('hidden');
+    }
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const auth = getAuth();
+      const user = loginUser.value.trim();
+      const pass = loginPass.value;
+
+      if (user === auth.username && pass === auth.password) {
+        setSession(user);
+        loginStatus.textContent = '';
+        loginForm.reset();
+        showApp(user);
+      } else {
+        loginStatus.textContent = 'Usuário ou senha incorretos.';
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      clearSession();
+      showLogin();
+    });
+
+    openSettingsBtn.addEventListener('click', () => {
+      const auth = getAuth();
+      newUser.value = auth.username;
+      newPass.value = auth.password;
+      settingsStatus.textContent = '';
+      settingsDialog.showModal();
+    });
+
+    closeSettingsBtn.addEventListener('click', () => settingsDialog.close());
+
+    settingsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const user = newUser.value.trim();
+      const pass = newPass.value.trim();
+
+      if (!user || !pass) {
+        settingsStatus.textContent = 'Preencha usuário e senha.';
+        return;
+      }
+
+      localStorage.setItem(AUTH_KEY, JSON.stringify({ username: user, password: pass }));
+      settingsStatus.textContent = 'Acesso atualizado com sucesso.';
+      const session = getSession();
+      if (session.loggedIn) {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ loggedIn: true, user }));
+        welcomeUser.textContent = `olá, ${user}`;
+      }
+    });
+
+    function getCapsules() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCapsules(capsules) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(capsules));
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return 'Sem data';
+      const [year, month, day] = dateString.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
+    function isPastOrToday(dateString) {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const target = new Date(dateString + 'T00:00:00');
+      return target <= today;
+    }
+
+    function setStatus(message, timeout = 2500) {
+      statusMessage.textContent = message;
+      if (timeout) {
+        setTimeout(() => {
+          if (statusMessage.textContent === message) statusMessage.textContent = '';
+        }, timeout);
+      }
+    }
+
+    function escapeHtml(str = '') {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function resetForm() {
+      capsuleForm.reset();
+      capsuleId.value = '';
+      editingMediaData = '';
+      capsuleMediaType.value = '';
+      document.getElementById('saveBtn').textContent = 'Salvar cápsula';
+      statusMessage.textContent = '';
+    }
+
+    capsuleMedia.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) {
+        capsuleMediaType.value = '';
+        editingMediaData = '';
+        return;
+      }
+
+      capsuleMediaType.value = file.type || 'arquivo';
+      editingMediaData = await fileToBase64(file);
+    });
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    capsuleForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const capsules = getCapsules();
+
+      const payload = {
+        id: capsuleId.value || crypto.randomUUID(),
+        title: capsuleTitle.value.trim(),
+        date: capsuleDate.value,
+        mood: capsuleMood.value,
+        message: capsuleMessage.value.trim(),
+        care: capsuleCare.value.trim(),
+        music: capsuleMusic.value.trim(),
+        media: editingMediaData || null,
+        mediaType: capsuleMediaType.value.trim() || '',
+        updatedAt: new Date().toISOString()
+      };
+
+      if (!payload.title || !payload.date || !payload.mood || !payload.message) {
+        setStatus('Preencha os campos obrigatórios.');
+        return;
+      }
+
+      const existingIndex = capsules.findIndex(c => c.id === payload.id);
+
+      if (existingIndex >= 0) {
+        const oldCapsule = capsules[existingIndex];
+        capsules[existingIndex] = {
+          ...oldCapsule,
+          ...payload,
+          media: editingMediaData ? editingMediaData : oldCapsule.media || null,
+          mediaType: editingMediaData ? payload.mediaType : oldCapsule.mediaType || '',
+        };
+        saveCapsules(capsules);
+        setStatus('Cápsula atualizada.');
+      } else {
+        capsules.push({
+          ...payload,
+          createdAt: new Date().toISOString()
+        });
+        saveCapsules(capsules);
+        setStatus('Cápsula salva com sucesso.');
+      }
+
+      resetForm();
+      renderCapsules();
+    });
+
+    function renderMedia(capsule) {
+      if (!capsule.media) return '';
+      const type = capsule.mediaType || '';
+
+      if (type.startsWith('image/')) {
+        return `
+          <div class="media-box">
+            <img src="${capsule.media}" alt="Imagem da cápsula ${escapeHtml(capsule.title)}">
+          </div>
+        `;
+      }
+
+      if (type.startsWith('video/')) {
+        return `
+          <div class="media-box">
+            <video controls preload="metadata">
+              <source src="${capsule.media}" type="${escapeHtml(type)}">
+              Seu navegador não suporta vídeo.
+            </video>
+          </div>
+        `;
+      }
+
+      return '';
+    }
+
+    function renderMusic(link) {
+      if (!link) return '';
+      return `
+        <a class="music-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">
+          Abrir música
+        </a>
+      `;
+    }
+
+    function renderCapsules() {
+      const query = searchInput.value.trim().toLowerCase();
+      const capsules = getCapsules().sort((a,b) => new Date(a.date) - new Date(b.date));
+
+      const filtered = capsules.filter(c => {
+        const haystack = [
+          c.title, c.mood, c.message, c.care, c.music || ''
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+      });
+
+      if (!filtered.length) {
+        capsulesList.innerHTML = `
+          <div class="empty-state">
+            ${query ? 'Nenhuma cápsula encontrada.' : 'Ainda não há cápsulas salvas. Crie a primeira quando quiser.'}
+          </div>
+        `;
+        return;
+      }
+
+      capsulesList.innerHTML = filtered.map(c => {
+        const due = isPastOrToday(c.date);
+        return `
+          <article class="capsule-item">
+            <div>
+              <div class="capsule-top">
+                <div>
+                  <div class="capsule-title">${escapeHtml(c.title)}</div>
+                  <div class="capsule-meta">
+                    <span class="tag">${escapeHtml(c.mood)}</span>
+                    <span class="tag">${due ? 'Pode abrir agora' : 'Abra em ' + formatDate(c.date)}</span>
+                    ${c.care ? `<span class="tag">Cuidado: ${escapeHtml(c.care)}</span>` : ''}
+                  </div>
+                </div>
+                <div class="capsule-date">${formatDate(c.date)}</div>
+              </div>
+
+              <div class="capsule-content">${escapeHtml(c.message)}</div>
+
+              <div class="media-preview">
+                ${renderMedia(c)}
+                ${renderMusic(c.music)}
+              </div>
+            </div>
+
+            <div class="capsule-actions">
+              <button class="btn-inline" type="button" onclick="editCapsule('${c.id}')">Editar</button>
+              <button class="btn-inline" type="button" onclick="duplicateCapsule('${c.id}')">Duplicar</button>
+              <button class="btn-inline btn-danger" type="button" onclick="deleteCapsule('${c.id}')">Excluir</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function editCapsule(id) {
+      const capsule = getCapsules().find(c => c.id === id);
+      if (!capsule) return;
+
+      capsuleId.value = capsule.id;
+      capsuleTitle.value = capsule.title;
+      capsuleDate.value = capsule.date;
+      capsuleMood.value = capsule.mood;
+      capsuleMessage.value = capsule.message;
+      capsuleCare.value = capsule.care || '';
+      capsuleMusic.value = capsule.music || '';
+      capsuleMediaType.value = capsule.mediaType || '';
+      editingMediaData = capsule.media || '';
+
+      document.getElementById('saveBtn').textContent = 'Atualizar cápsula';
+      setStatus('Modo de edição ativado.');
+      window.scrollTo({ top: document.querySelector('.composer').offsetTop - 90, behavior: 'smooth' });
+      capsuleTitle.focus();
+    }
+
+    function duplicateCapsule(id) {
+      const capsules = getCapsules();
+      const original = capsules.find(c => c.id === id);
+      if (!original) return;
+
+      capsules.push({
+        ...original,
+        id: crypto.randomUUID(),
+        title: original.title + ' (cópia)',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      saveCapsules(capsules);
+      renderCapsules();
+      setStatus('Cápsula duplicada.');
+    }
+
+    function deleteCapsule(id) {
+      if (!confirm('Tem certeza que deseja excluir esta cápsula?')) return;
+      const updated = getCapsules().filter(c => c.id !== id);
+      saveCapsules(updated);
+      renderCapsules();
+      setStatus('Cápsula excluída.');
+    }
+
+    clearBtn.addEventListener('click', resetForm);
+    searchInput.addEventListener('input', renderCapsules);
+
+    document.querySelectorAll('.chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const prompt = btn.dataset.prompt;
+        const current = capsuleMessage.value.trim();
+        capsuleMessage.value = current ? current + '\n\n' + prompt + ' ' : prompt + ' ';
+        capsuleMessage.focus();
+      });
+    });
+
+    exportBtn.addEventListener('click', () => {
+      const data = getCapsules();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'capsulas-privadas.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus('Backup exportado.');
+    });
+
+    importBtn.addEventListener('click', () => importFile.click());
+
+    importFile.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const imported = JSON.parse(text);
+
+        if (!Array.isArray(imported)) throw new Error();
+
+        const normalized = imported.filter(item =>
+          item && item.title && item.date && item.mood && item.message
+        ).map(item => ({
+          id: item.id || crypto.randomUUID(),
+          title: String(item.title),
+          date: String(item.date),
+          mood: String(item.mood),
+          message: String(item.message),
+          care: item.care ? String(item.care) : '',
+          music: item.music ? String(item.music) : '',
+          media: item.media || null,
+          mediaType: item.mediaType ? String(item.mediaType) : '',
+          createdAt: item.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }));
+
+        saveCapsules(normalized);
+        renderCapsules();
+        setStatus('Cápsulas importadas com sucesso.');
+      } catch {
+        setStatus('Arquivo inválido para importação.');
+      } finally {
+        importFile.value = '';
+      }
+    });
+
+    function initReveal() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+      }, { threshold: .12 });
+
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    }
+
+    const session = getSession();
+    if (session.loggedIn && session.user) {
+      showApp(session.user);
+    } else {
+      showLogin();
+    }
+  </script>
+</body>
+</html>
